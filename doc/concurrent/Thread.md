@@ -1,10 +1,11 @@
 # Java线程
 
 ## Thread
+
 ### 状态
 |状态|说明|
 |------|------|
-|NEW||
+|NEW|新建|
 |RUNNABLE|已经start|
 |BLOCKED|等待monitor|
 |WAITING| 无期限等待|
@@ -12,27 +13,34 @@
 |TERMINATED|被中断|
 
 ### 静态方法
-- currentThread()
-- holdsLock(Object)
-- sleep(long)
-- yield()
+- currentThread(): 
+- holdsLock(Object): 
+- sleep(long): 当前线程进入等待状态，但是不会释放占有的资源
+- yield(): 当前线程让出CPU
 
 ### 方法
 - getId(), getName(), getPriority(), isDaemon()
 - getState(), isAlive(), isInterrupted()
 - getThreadGroup()
 - getUncaughtExceptionHandler()
-- start(), run()
-- interrupt()
-- join(long)
+- start(), run(): 
+- interrupt(): 设置中断标志
+- join(long): 等待线程完成，wait(0)
+
+### wait and notify
+- wait(): 当前线程加入目标对象的等待队列
+- notify(): 目标对象从等待队列随机唤醒一个线程
+- notifyAll(): 目标对象唤醒等待队列里所有的线程
+- 注意：wait和notify都需要首先获得目标对象的monitor，所以一般在synchronized同步块内使用
 
 
 ## 异步
+
 ### Runnable
-- void run()
+- void run(): 无返回值
 
 ### Callable<V>
-- V call() throws Exception
+- V call() throws Exception: 有返回值
 
 ### Future<V>
 - 存储异步执行的返回值
@@ -70,7 +78,7 @@
 - newCacheThreadPool(0, max, SynchronousQueue)
 
 ### ForkJoinTask<V>
-- 类似与线程的实体对象
+- 类似于线程的实体对象
 - 实现Future接口
 - RecursiveAction没有返回值，RecursiveTask有返回值
 - CountedCompleter
@@ -97,6 +105,4 @@
 - runAsync(Runnalbe): 执行任务
 - supplyAsync(Supplier): 结果从Supplier中获取
 - completedFuture(V): 封装已知结果
-
-
 

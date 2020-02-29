@@ -1,15 +1,12 @@
 # 高并发I/O基础
 https://www.jianshu.com/writer#/notebooks/33672046/notes/41681996
 
-##准备知识
+## 准备知识
 
 ### 用户态与内核态
-- 操作系统将虚拟空间分成用户空间与内核空间。用户进程不能访问内核空间。只有系统调用才可以访问内核空间。
-- 操作系统会将IO数据缓存在文件系统的页缓存，也就是说，数据会先被拷贝到内核的缓存区，然后才拷贝到用户空间。
-
-### I/O的两个阶段
-- 等待IO事件就绪
-- 拷贝数据：将数据从内核缓冲区拷贝到用户缓存区
+操作系统将虚拟空间分成用户空间与内核空间。用户进程不能访问内核空间。只有系统调用才可以访问内核空间。  
+操作系统会将IO数据缓存在文件系统的页缓存，也就是说，数据会先被拷贝到内核的缓存区，然后才拷贝到用户空间。  
+mmap内存映射可以让用户进程和内核进程读写同一份内存空间，减少数据拷贝。把设备文件映射到虚拟内存。
 
 ### 五种网络I/O模型
 |模型|描述|
@@ -20,14 +17,14 @@ https://www.jianshu.com/writer#/notebooks/33672046/notes/41681996
 |信号驱动I/O|使用信号处理函数来处理数据的拷贝|
 |异步I/O|等待数据与拷贝数据都不阻塞|
 
-### BIO,NIO,AIO
-- IO包括两个阶段：等待IO事件就绪，和数据拷贝，也就是把数据从内核的缓存区拷贝到用户空间。
-- BIO：阻塞的等待IO事件就绪，并且等待操作系统把数据拷贝到用户空间之后才返回
-- NIO（同步非阻塞）：一般采用IO多路复用，非阻塞的等待IO事件就绪，但是数据拷贝的过程还是阻塞（同步?）的
-- AIO（异步非阻塞）：非阻塞的等待IO事件就绪，并且等待操作系统把数据拷贝到用户空间之后，再通知用户进程去处理
-- 注意1：同步与阻塞的含义不同，表述要准确
-- 注意2: 数据拷贝的过程用说清楚是把数据从内核空间拷贝到用户空间
-- 注意3: NIO要点出IO多路复用
+IO包括两个阶段：等待IO事件就绪，和数据拷贝，也就是把数据从内核的缓存区拷贝到用户空间。  
+BIO：阻塞的等待IO事件就绪，并且等待操作系统把数据拷贝到用户空间之后才返回  
+NIO（同步非阻塞）：一般采用IO多路复用，非阻塞的等待IO事件就绪，但是数据拷贝的过程还是阻塞（同步?）的  
+AIO（异步非阻塞）：非阻塞的等待IO事件就绪，并且等待操作系统把数据拷贝到用户空间之后，再通知用户进程去处理  
+> 注意1：同步与阻塞的含义不同，表述要准确
+> 注意2: 数据拷贝的过程说清楚是把数据从内核空间拷贝到用户空间
+> 注意3: NIO要点出IO多路复用
+
 
 ## I/O多路复用
 
@@ -45,18 +42,18 @@ https://www.jianshu.com/writer#/notebooks/33672046/notes/41681996
 - 就绪链表存储就绪的事件
 
 ### 流程
-- epoll_create: 建立一个epoll对象
-- epoll_ctl: 向epoll对象添加socket链接，并注册一个回调函数ep_poll_callback，当驱动器有事件就绪时插入就绪列表
-- epoll_wait: 收集就绪列表的就绪事件，调用ep_poll返回文件描述符，并且通过ep_send_events向用户空间发送就绪事件
+epoll_create: 建立一个epoll对象  
+epoll_ctl: 向epoll对象添加socket链接，并注册一个回调函数ep_poll_callback，当驱动器有事件就绪时插入就绪列表  
+epoll_wait: 收集就绪列表的就绪事件，调用ep_poll返回文件描述符，并且通过ep_send_events向用户空间发送就绪事件  
 
 
 ## Java Selector
-* Selector.open(): 创建selector
-* SelectableChannel.register(...): 将channel注册到selector
-* Selector.select(): 选择事件就绪的通道
-* Selector.selectedKeys(): 事件就绪的通道
-* Selector.wakeUp(): 唤醒selector
-* Selector.close(): 关闭selector
+- Selector.open(): 创建selector
+- SelectableChannel.register(...): 将channel注册到selector
+- Selector.select(): 选择事件就绪的通道
+- Selector.selectedKeys(): 事件就绪的通道
+- Selector.wakeUp(): 唤醒selector
+- Selector.close(): 关闭selector
 
 
 ## Reactor模式
@@ -73,25 +70,24 @@ https://www.jianshu.com/writer#/notebooks/33672046/notes/41681996
 
 ### 多Reactor线程模式
 - 一个mainReactor处理ACCEPT事件
-- 多个subReactor处理其他事件
+- 多个subReactor处理IO事件
 
 ### Netty实现多Reactor线程模式
 |Reactor|Netty|
 |------|------|
 |Initiation Dispatcher|NioEventLoop|
-|Synchronous Event Demultiplexer|Selector|
-|Event Handler|ChannelHandler|
 |mainReactor|bossGroup中的某个NioEventLoop|
 |subReactor|workerGroup中的某个NioEventLoop|
 |acceptor|ServerBootstrapAcceptor|
+|Synchronous Event Demultiplexer|Selector|
+|Event Handler|ChannelHandler|
 |Thread pool|用户自定义的线程池|
 
-### Proactor模式（貌似有两种方案？）
+### Proactor模式
 - 通过异步操作来非阻塞的拷贝数据
 - Proactor: 调用Asynchronous Operation Processor
 - Asynchronous Operation Processor: 调用Asynchronous Operation发起异步IO，并获取IO完成通知
 - Asynchronous Operation: 异步操作
 - Completion Handler: 回调
 - Handle: 资源
-
 

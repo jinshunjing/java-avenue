@@ -151,3 +151,42 @@ Dubbo则是分成了两个步骤：
 - 然后生成了Proxy的子类Proxy0，并创建了实例。通过newInstance可以创建代理类proxy0的实例。
 - 优点：Proxy类就像一个工厂类，可以创建N个接口的不同实例
 
+
+### 服务暴露
+1. ServiceConfig 拿到对外提供服务的实现类 ref
+2. 通过 ProxyFactory#getInvoker 方法使用 ref 生成一个 AbstractProxyInvoker 实例。完成了具体服务到Invoker的转化。
+3. 接下来是 Invoker 转换到 Exporter 的过程。Exporter 会通过转化为 URL 的方式暴露服务。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
